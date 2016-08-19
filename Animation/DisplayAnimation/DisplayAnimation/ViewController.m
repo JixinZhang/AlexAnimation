@@ -57,11 +57,23 @@
     
     CABasicAnimation *animation = [CABasicAnimation animation];
     animation.keyPath = @"backgroundColor";
-    animation.fromValue = (__bridge id)self.colorLayer.backgroundColor;
-    self.colorLayer.backgroundColor = color.CGColor;
     animation.toValue = (__bridge id)color.CGColor;
     
-    [self.colorLayer addAnimation:animation forKey:nil];
+    [self applyBasicAnimation:animation toLayer:self.colorLayer];
+}
+
+- (void)applyBasicAnimation:(CABasicAnimation *)animation toLayer:(CALayer *)layer {
+    
+    //set the from value (using presentation layer if available)
+    animation.fromValue = [layer.presentationLayer ?: layer valueForKeyPath:animation.keyPath];
+    //update the property in advance
+    //note: this approach will only work if toValue != nil
+    [CATransaction begin];
+    [CATransaction setDisableActions:YES];
+    [layer setValue:animation.toValue forKeyPath:animation.keyPath];
+    [CATransaction commit];
+    //apply animation to layer
+    [layer addAnimation:animation forKey:nil];
 }
 
 @end
